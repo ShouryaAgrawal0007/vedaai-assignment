@@ -61,7 +61,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
       
       {isEditing ? (
         // EDIT MODE (Elegant nested edit block)
-        <div className="w-full bg-zinc-50 border border-zinc-200 rounded-3xl p-5 flex flex-col gap-4 shadow-sm my-2 print:hidden">
+        <div className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl md:rounded-3xl p-4 md:p-5 flex flex-col gap-3 md:gap-4 shadow-sm my-2 print:hidden">
           <div className="flex flex-col gap-1">
             <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
               Question Content
@@ -109,7 +109,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
               <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
                 Options
               </label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                 {options.map((opt, i) => (
                   <div key={i} className="flex items-center gap-2">
                     <span className="text-xs font-bold text-zinc-400 w-5">
@@ -165,12 +165,12 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
         <div className="flex flex-col w-full relative group/row">
           
           {/* Main Question Line */}
-          <div className="flex items-start justify-between w-full gap-3 flex-wrap sm:flex-nowrap">
-            <div className="text-xs text-zinc-900 print:text-black leading-relaxed font-semibold flex items-center gap-2 flex-wrap sm:flex-nowrap">
+          <div className="flex items-start justify-between w-full gap-3 flex-wrap md:flex-nowrap">
+            <div className="text-xs text-zinc-900 print:text-black leading-relaxed font-semibold flex items-start gap-2 flex-wrap md:flex-nowrap">
               <span className="mr-0.5 font-bold shrink-0">{index}.</span>
               
               {/* Screen-only color pill badge */}
-              <span className={`print:hidden inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider shrink-0 select-none ${
+              <span className={`print:hidden inline-flex items-center px-1.5 md:px-2 py-0.5 rounded-full text-[8px] md:text-[9px] font-black uppercase tracking-wider shrink-0 select-none ${
                 difficulty === 'Easy' 
                   ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
                   : difficulty === 'Medium'
@@ -185,7 +185,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
                 [{difficulty}]
               </span>
 
-              <span>{text}</span>
+              <span className="break-words w-full">{text}</span>
             </div>
             
             <div className="flex items-center gap-3 shrink-0">
@@ -215,7 +215,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
 
           {/* MCQ Choices listing */}
           {(question.type === 'MCQs' || question.type === 'True/False') && options.length > 0 && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5 pl-6 mt-1.5 print:pl-6 select-text">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-1.5 pl-6 mt-1.5 print:pl-6 select-text">
               {options.map((opt, i) => (
                 <div key={i} className="flex items-center gap-1.5 text-xs text-zinc-700 print:text-black leading-relaxed font-semibold">
                   <span className="font-bold">

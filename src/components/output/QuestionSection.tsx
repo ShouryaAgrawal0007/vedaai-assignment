@@ -31,17 +31,17 @@ export const QuestionSection: React.FC<QuestionSectionProps> = ({
   const sampleMarks = questions[0]?.marks || 2;
 
   return (
-    <div className="flex flex-col gap-4 mt-6 print:mt-4 print:break-inside-avoid">
+    <div className="flex flex-col gap-3 md:gap-4 mt-4 md:mt-6 print:mt-4 print:break-inside-avoid">
       
       {/* Centered Section Divider */}
-      <div className="text-center my-3 select-none">
+      <div className="text-center my-2 md:my-3 select-none">
         <h3 className="text-base font-black text-zinc-900 tracking-tight print:text-black">
           {header}
         </h3>
       </div>
 
       {/* Subsection details and italics instructions */}
-      <div className="flex flex-col gap-1 select-none">
+      <div className="flex flex-col gap-0.5 md:gap-1 select-none">
         <h4 className="text-sm font-black text-zinc-900 print:text-black">
           {subtitle}
         </h4>
@@ -51,7 +51,7 @@ export const QuestionSection: React.FC<QuestionSectionProps> = ({
       </div>
 
       {/* Sequential Questions list */}
-      <div className="flex flex-col gap-3.5 mt-2">
+      <div className="flex flex-col gap-2 md:gap-3.5 mt-1 md:mt-2">
         {questions.map((q, index) => (
           <QuestionCard
             key={q.id}

@@ -273,7 +273,7 @@ export default function QuestionPaperOutputPage() {
       )}
 
       {/* ----------------- TOP UTILITY HEADER (Hidden in Print) ----------------- */}
-      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-[#E5E7EB] rounded-3xl px-6 py-4 shadow-sm print:hidden select-none">
+      <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white border border-[#E5E7EB] rounded-3xl px-6 py-4 shadow-sm print:hidden select-none">
         <div className="flex items-center gap-3">
           <button 
             onClick={handleBackToDashboard}
@@ -283,7 +283,7 @@ export default function QuestionPaperOutputPage() {
             <ArrowLeft className="w-4 h-4" />
           </button>
           <div>
-            <h1 className="text-sm font-black text-zinc-950 tracking-tight truncate max-w-[200px] sm:max-w-md">
+            <h1 className="text-sm font-black text-zinc-950 tracking-tight truncate max-w-[200px] md:max-w-md">
               {activeAssignment.title}
             </h1>
             <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider mt-0.5">
@@ -292,8 +292,8 @@ export default function QuestionPaperOutputPage() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2.5">
-          <label className="flex items-center gap-1.5 text-xs font-black text-zinc-600 mr-2 cursor-pointer select-none">
+        <div className="flex flex-col md:flex-row md:items-center gap-3 w-full md:w-auto">
+          <label className="flex items-center gap-1.5 text-xs font-black text-zinc-600 md:mr-2 cursor-pointer select-none w-full md:w-auto">
             <input 
               type="checkbox" 
               checked={includeAnswerKey}
@@ -303,50 +303,54 @@ export default function QuestionPaperOutputPage() {
             Include Answer Key
           </label>
 
-          <Button
-            onClick={handleAddQuestion}
-            variant="secondary"
-            size="sm"
-            leftIcon={<Plus className="w-4 h-4" />}
-          >
-            Add Question
-          </Button>
+          <div className="grid grid-cols-2 md:flex md:items-center gap-2.5 w-full md:w-auto">
+            <Button
+              onClick={handleAddQuestion}
+              variant="secondary"
+              size="sm"
+              className="w-full md:w-auto"
+              leftIcon={<Plus className="w-4 h-4" />}
+            >
+              Add Question
+            </Button>
 
-          <Button
-            onClick={handleRegenerate}
-            variant="secondary"
-            size="sm"
-            className="hover:border-[#FF5722] hover:text-[#FF5722] transition-colors"
-            leftIcon={<RefreshCw className={`w-4 h-4 ${isGenerating ? 'animate-spin' : ''}`} />}
-          >
-            Regenerate
-          </Button>
+            <Button
+              onClick={handleRegenerate}
+              variant="secondary"
+              size="sm"
+              className="w-full md:w-auto hover:border-[#FF5722] hover:text-[#FF5722] transition-colors"
+              leftIcon={<RefreshCw className={`w-4 h-4 ${isGenerating ? 'animate-spin' : ''}`} />}
+            >
+              Regenerate
+            </Button>
 
-          <Button
-            onClick={handlePrint}
-            variant="primary"
-            size="sm"
-            leftIcon={<Printer className="w-4 h-4" />}
-          >
-            Print Paper
-          </Button>
+            <Button
+              onClick={handlePrint}
+              variant="primary"
+              size="sm"
+              className="w-full md:w-auto col-span-2 md:col-span-1"
+              leftIcon={<Printer className="w-4 h-4" />}
+            >
+              Print Paper
+            </Button>
+          </div>
         </div>
       </header>
 
       {/* ----------------- DARK GREY SYSTEM RESPONSE HEADER (Figma Spec) ----------------- */}
       <div className="w-full max-w-4xl mx-auto bg-[#18181B] text-white p-5 rounded-[2rem] flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm print:hidden">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-zinc-800 rounded-full text-[#FF5722] shrink-0">
+        <div className="flex items-start md:items-center gap-3">
+          <div className="p-2 bg-zinc-800 rounded-full text-[#FF5722] shrink-0 mt-0.5 md:mt-0">
             <Sparkles className="w-4.5 h-4.5 text-[#FF5722] animate-pulse" />
           </div>
-          <p className="text-xs font-bold text-zinc-200 leading-relaxed max-w-xl">
+          <p className="text-xs font-bold text-zinc-200 leading-relaxed max-w-xl break-words">
             Here is your AI-generated question paper for {activeAssignment.title}
           </p>
         </div>
         
         <button
           onClick={handlePrint}
-          className="flex items-center justify-center gap-2 bg-white hover:bg-zinc-50 text-zinc-950 px-5 py-2.5 rounded-full font-black text-xs shadow-sm transition-all active:scale-[0.98] self-start md:self-auto flex-shrink-0 select-none"
+          className="flex items-center justify-center gap-2 bg-white hover:bg-zinc-50 text-zinc-950 px-5 py-2.5 rounded-full font-black text-xs shadow-sm transition-all active:scale-[0.98] w-full md:w-auto self-stretch md:self-auto flex-shrink-0 select-none"
         >
           <Download className="w-4 h-4 stroke-[2.5]" />
           Download as PDF
@@ -354,7 +358,7 @@ export default function QuestionPaperOutputPage() {
       </div>
 
       {/* ----------------- ASSIGNMENT TEST SHEET CONTAINER ----------------- */}
-      <div className="w-full max-w-4xl mx-auto bg-white border border-zinc-200 rounded-[2.5rem] p-6 sm:p-12 shadow-sm print:border-none print:shadow-none print:p-0 print:w-full print:max-w-none">
+      <div className="w-full max-w-4xl mx-auto bg-white border border-zinc-200 rounded-2xl md:rounded-[2.5rem] p-4 md:p-12 shadow-sm print:border-none print:shadow-none print:p-0 print:w-full print:max-w-none">
         
         {/* Academic School Test Header */}
         <div className="flex flex-col items-center text-center pb-4 mb-6 border-b border-zinc-150">
@@ -369,7 +373,7 @@ export default function QuestionPaperOutputPage() {
           </h4>
 
           {/* Time & Marks Metrics Grid */}
-          <div className="w-full flex items-center justify-between mt-5 text-xs font-black text-zinc-800 print:text-black">
+          <div className="w-full flex flex-row items-center justify-between mt-5 text-xs font-black text-zinc-800 print:text-black gap-2 flex-wrap md:flex-nowrap">
             <span>Time Allowed: {activeAssignment.timeAllowed || '3 hours'}</span>
             <span>Maximum Marks: {activeAssignment.marks}</span>
           </div>
@@ -418,7 +422,7 @@ export default function QuestionPaperOutputPage() {
 
         {/* ----------------- ANSWER KEY GRID (Figma Spec) ----------------- */}
         {includeAnswerKey && activeAssignment.questions && activeAssignment.questions.length > 0 && (
-          <div className="mt-8 pt-6 border-t-2 border-dashed border-zinc-200 flex flex-col gap-4 break-before-page print:break-before-page">
+          <div className="mt-6 md:mt-8 pt-4 md:pt-6 border-t-2 border-dashed border-zinc-200 flex flex-col gap-4 break-before-page print:break-before-page">
             <h3 className="text-sm font-black text-zinc-900 print:text-black">
               Answer Key:
             </h3>
