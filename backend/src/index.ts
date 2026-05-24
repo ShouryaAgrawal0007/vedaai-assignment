@@ -12,7 +12,15 @@ const httpServer = http.createServer(app);
 // ─── Middleware ────────────────────────────────────────────────────────────────
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      const isAllowed =
+        !origin ||
+        origin.includes('vercel.app') ||
+        origin.includes('localhost') ||
+        origin === process.env.FRONTEND_URL;
+      callback(null, isAllowed ? origin : false);
+    },
     credentials: true,
   })
 );
