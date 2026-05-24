@@ -152,7 +152,7 @@ export const AssignmentForm: React.FC = () => {
 
         // Poll every 2 seconds until job completes
         const pollInterval = setInterval(() => {
-          fetch(`http://localhost:4000/api/assignments/${assignment.id}`)
+          fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/assignments/${assignment.id}`)
             .then(r => r.json())
             .then(data => {
               // console.log('Polling status:', data.assignment?.status, 'questions:', data.assignment?.questions?.length);
