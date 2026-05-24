@@ -88,6 +88,9 @@ const worker = new Worker<GenerationJobData>(
         fileName: updated!.fileName,
         fileSize: updated!.fileSize,
         questions: updated!.questions,
+        schoolName: updated!.schoolName,
+        className: updated!.className,
+        timeAllowed: updated!.timeAllowed,
       },
     });
 

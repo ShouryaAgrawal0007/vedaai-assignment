@@ -36,6 +36,7 @@ You are an expert teacher and curriculum designer. Generate a complete, well-str
 
 ASSIGNMENT DETAILS:
 - Subject/Topic: ${assignment.title}
+- Grade/Class: ${assignment.className || '8th'}
 - Total Questions: ${totalQuestions}
 - Total Marks: ${totalMarks}
 - Question Types Required: ${questionTypesList}

@@ -3,12 +3,14 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
-  ArrowLeft, Printer, Plus, AlertCircle, Check, Download, Sparkles 
+  ArrowLeft, Printer, Plus, AlertCircle, Check, Download, Sparkles, RefreshCw
 } from 'lucide-react';
 import { useAssignmentStore, Question } from '../../store/useAssignmentStore';
 import { StudentInfo } from '../../components/output/StudentInfo';
 import { QuestionSection } from '../../components/output/QuestionSection';
 import { Button } from '../../components/ui/Button';
+import { regenerateAssignment } from '../../lib/api';
+import { useJobSocket } from '../../hooks/useJobSocket';
 
 export default function QuestionPaperOutputPage() {
   const router = useRouter();
@@ -20,9 +22,78 @@ export default function QuestionPaperOutputPage() {
 
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [includeAnswerKey, setIncludeAnswerKey] = useState(true);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generationMessage, setGenerationMessage] = useState('');
+  const [generationProgress, setGenerationProgress] = useState(0);
+  const [socketAssignmentId, setSocketAssignmentId] = useState<string | null>(null);
+
+  // Connect socket hook when regenerating
+  useJobSocket({
+    assignmentId: socketAssignmentId,
+    onProgress: (message, progress) => {
+      setGenerationMessage(message);
+      setGenerationProgress(progress);
+    },
+    onCompleted: (updatedAssignment) => {
+      setGenerationProgress(100);
+      setGenerationMessage('Question paper ready!');
+      setTimeout(() => {
+        setIsGenerating(false);
+        setSocketAssignmentId(null);
+      }, 500);
+    },
+    onFailed: (error) => {
+      setIsGenerating(false);
+      setSocketAssignmentId(null);
+      triggerToast(`Regeneration failed: ${error}`);
+    }
+  });
 
   // Find active assignment
   const activeAssignment = assignments.find((a) => a.id === activeAssignmentId);
+
+  const handleRegenerate = async () => {
+    if (!activeAssignment) return;
+    setIsGenerating(true);
+    setGenerationProgress(5);
+    setGenerationMessage('Requesting regeneration...');
+    try {
+      const { jobId } = await regenerateAssignment(activeAssignment.id);
+      setGenerationProgress(15);
+      setGenerationMessage('Job queued — AI is regenerating...');
+      setSocketAssignmentId(activeAssignment.id);
+      
+      // Also start a polling interval for fallback robustness
+      const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+      const pollInterval = setInterval(() => {
+        fetch(`${BASE_URL}/api/assignments/${activeAssignment.id}`)
+          .then(r => r.json())
+          .then(data => {
+            if (data.assignment?.status === 'completed' && data.assignment?.questions?.length > 0) {
+              clearInterval(pollInterval);
+              setGenerationProgress(100);
+              setGenerationMessage('Question paper ready!');
+              
+              // update store
+              useAssignmentStore.getState().updateAssignmentFromSocket(data.assignment);
+              
+              setTimeout(() => {
+                setIsGenerating(false);
+                setSocketAssignmentId(null);
+              }, 500);
+            }
+          })
+          .catch(console.error);
+      }, 2000);
+
+      // Clear interval after 60 seconds
+      setTimeout(() => clearInterval(pollInterval), 60000);
+    } catch (err: any) {
+      console.error(err);
+      setIsGenerating(false);
+      triggerToast(err.message || 'Failed to regenerate assignment');
+    }
+  };
 
   // Router fallback if no active assignment
   const handleBackToDashboard = () => {
@@ -158,6 +229,39 @@ export default function QuestionPaperOutputPage() {
   return (
     <div className="min-h-screen bg-[#F3F4F6] text-zinc-950 p-4 sm:p-6 md:p-8 flex flex-col gap-6 print:bg-white print:p-0 print:text-black">
       
+      {/* Loading overlay */}
+      {isGenerating && (
+        <div className="fixed inset-0 bg-[#0F0F11]/90 backdrop-blur-md z-50 flex flex-col items-center justify-center p-6 text-center">
+          <div className="w-full max-w-md bg-[#18181B] border border-zinc-800 p-8 rounded-3xl shadow-xl flex flex-col items-center gap-6">
+            <div className="relative">
+              <div className="w-16 h-16 rounded-full border-4 border-zinc-800 border-t-[#FF5722] animate-spin" />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Sparkles className="w-6 h-6 text-[#FF5722] animate-pulse" />
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <h3 className="text-lg font-bold text-white tracking-tight">VedaAI Generator</h3>
+              <p className="text-xs font-semibold text-zinc-400 min-h-[36px]">
+                {generationMessage}
+              </p>
+            </div>
+
+            <div className="w-full flex flex-col gap-2">
+              <div className="w-full h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-[#FF5722] transition-all duration-500 ease-out"
+                  style={{ width: `${generationProgress}%` }}
+                />
+              </div>
+              <span className="text-[9px] font-bold tracking-wider text-zinc-500 uppercase">
+                {generationProgress}% complete
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ----------------- TOAST FEEDBACK ALERT ----------------- */}
       {toastMessage && (
         <div className="fixed top-6 right-6 z-50 bg-[#18181B] text-white py-3 px-5 rounded-2xl shadow-xl flex items-center gap-2 text-xs font-semibold animate-in fade-in slide-in-from-top-4 duration-200">
@@ -209,6 +313,16 @@ export default function QuestionPaperOutputPage() {
           </Button>
 
           <Button
+            onClick={handleRegenerate}
+            variant="secondary"
+            size="sm"
+            className="hover:border-[#FF5722] hover:text-[#FF5722] transition-colors"
+            leftIcon={<RefreshCw className={`w-4 h-4 ${isGenerating ? 'animate-spin' : ''}`} />}
+          >
+            Regenerate
+          </Button>
+
+          <Button
             onClick={handlePrint}
             variant="primary"
             size="sm"
@@ -226,7 +340,7 @@ export default function QuestionPaperOutputPage() {
             <Sparkles className="w-4.5 h-4.5 text-[#FF5722] animate-pulse" />
           </div>
           <p className="text-xs font-bold text-zinc-200 leading-relaxed max-w-xl">
-            Certainly, Lakshya! Here are customized Question Paper for your CBSE Grade 8 Science classes on the NCERT chapters:
+            Here is your AI-generated question paper for {activeAssignment.title}
           </p>
         </div>
         
@@ -245,18 +359,18 @@ export default function QuestionPaperOutputPage() {
         {/* Academic School Test Header */}
         <div className="flex flex-col items-center text-center pb-4 mb-6 border-b border-zinc-150">
           <h2 className="text-base font-black tracking-tight text-zinc-900 print:text-black">
-            Delhi Public School, Sector-4, Bokaro
+            {activeAssignment.schoolName || 'Delhi Public School'}
           </h2>
           <h3 className="text-sm font-black text-zinc-800 mt-1 print:text-black">
             Subject: {activeAssignment.title}
           </h3>
           <h4 className="text-xs font-black text-zinc-650 mt-0.5 print:text-black">
-            Class: 5th
+            Class: {activeAssignment.className || '8th'}
           </h4>
 
           {/* Time & Marks Metrics Grid */}
           <div className="w-full flex items-center justify-between mt-5 text-xs font-black text-zinc-800 print:text-black">
-            <span>Time Allowed: 45 minutes</span>
+            <span>Time Allowed: {activeAssignment.timeAllowed || '3 hours'}</span>
             <span>Maximum Marks: {activeAssignment.marks}</span>
           </div>
 
@@ -267,7 +381,7 @@ export default function QuestionPaperOutputPage() {
         </div>
 
         {/* Custom underscored Student Info block */}
-        <StudentInfo grade="5th" />
+        <StudentInfo grade={activeAssignment.className || '8th'} />
 
         {/* Question Sections list mapping */}
         {Object.keys(questionsBySection).length === 0 ? (

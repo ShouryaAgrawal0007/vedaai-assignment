@@ -33,6 +33,9 @@ const CreateAssignmentSchema = z.object({
   numQuestions: z.coerce.number().int().min(1).max(100),
   marks: z.coerce.number().int().min(1).max(500),
   instructions: z.string().optional().default(''),
+  schoolName: z.string().optional().default("Delhi Public School"),
+  className: z.string().optional().default("8th"),
+  timeAllowed: z.string().optional().default("3 hours"),
 });
 
 // Helper to format today's date as DD-MM-YYYY
@@ -65,7 +68,7 @@ router.post('/', upload.single('file'), async (req: Request, res: Response) => {
       });
     }
 
-    const { title, due, questionTypes, numQuestions, marks, instructions } = parsed.data;
+    const { title, due, questionTypes, numQuestions, marks, instructions, schoolName, className, timeAllowed } = parsed.data;
 
     // Build assignment doc
     const assignment = await AssignmentModel.create({
@@ -76,6 +79,9 @@ router.post('/', upload.single('file'), async (req: Request, res: Response) => {
       numQuestions,
       marks,
       instructions,
+      schoolName,
+      className,
+      timeAllowed,
       fileName: req.file?.originalname,
       fileSize: req.file
         ? `${(req.file.size / 1024 / 1024).toFixed(1)} MB`
@@ -111,6 +117,9 @@ router.post('/', upload.single('file'), async (req: Request, res: Response) => {
         fileName: assignment.fileName,
         fileSize: assignment.fileSize,
         status: assignment.status,
+        schoolName: assignment.schoolName,
+        className: assignment.className,
+        timeAllowed: assignment.timeAllowed,
       },
       jobId: job.id,
     });
@@ -148,6 +157,9 @@ router.get('/', async (_req: Request, res: Response) => {
       fileSize: a.fileSize,
       questions: a.questions,
       status: a.status,
+      schoolName: a.schoolName,
+      className: a.className,
+      timeAllowed: a.timeAllowed,
     }));
 
     await redis.setex(cacheKey, 60, JSON.stringify(shaped));
@@ -185,6 +197,9 @@ router.get('/:id', async (req: Request, res: Response) => {
       fileSize: a.fileSize,
       questions: a.questions,
       status: a.status,
+      schoolName: a.schoolName,
+      className: a.className,
+      timeAllowed: a.timeAllowed,
     };
 
     // Only cache completed assignments

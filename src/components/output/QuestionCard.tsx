@@ -166,9 +166,25 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
           
           {/* Main Question Line */}
           <div className="flex items-start justify-between w-full gap-3 flex-wrap sm:flex-nowrap">
-            <div className="text-xs text-zinc-900 print:text-black leading-relaxed font-semibold">
-              <span className="mr-1.5 font-bold">{index}.</span>
-              <span className="font-bold">[{difficulty}]</span>{' '}
+            <div className="text-xs text-zinc-900 print:text-black leading-relaxed font-semibold flex items-center gap-2 flex-wrap sm:flex-nowrap">
+              <span className="mr-0.5 font-bold shrink-0">{index}.</span>
+              
+              {/* Screen-only color pill badge */}
+              <span className={`print:hidden inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider shrink-0 select-none ${
+                difficulty === 'Easy' 
+                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
+                  : difficulty === 'Medium'
+                  ? 'bg-amber-50 text-amber-700 border border-amber-250'
+                  : 'bg-rose-50 text-rose-700 border border-rose-200'
+              }`}>
+                {difficulty}
+              </span>
+
+              {/* Print-only monochrome bracketed text */}
+              <span className="hidden print:inline font-bold">
+                [{difficulty}]
+              </span>
+
               <span>{text}</span>
             </div>
             

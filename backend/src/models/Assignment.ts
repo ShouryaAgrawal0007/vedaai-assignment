@@ -25,6 +25,9 @@ export interface IAssignment extends Document {
   jobId?: string;
   status: 'pending' | 'processing' | 'completed' | 'failed';
   errorMessage?: string;
+  schoolName?: string;
+  className?: string;
+  timeAllowed?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -59,6 +62,9 @@ const AssignmentSchema = new Schema<IAssignment>(
       default: 'pending',
     },
     errorMessage: { type: String },
+    schoolName: { type: String, default: "Delhi Public School" },
+    className: { type: String, default: "8th" },
+    timeAllowed: { type: String, default: "3 hours" },
   },
   { timestamps: true }
 );

@@ -25,6 +25,9 @@ export interface Assignment {
   fileSize?: string;
   questions?: Question[];
   status?: 'pending' | 'processing' | 'completed' | 'failed';
+  schoolName?: string;
+  className?: string;
+  timeAllowed?: string;
 }
 
 interface AssignmentState {

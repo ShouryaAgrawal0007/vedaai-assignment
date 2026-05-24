@@ -23,6 +23,9 @@ export const AssignmentForm: React.FC = () => {
   const [dueDate, setDueDate] = useState('');
   const [instructions, setInstructions] = useState('Attempt all questions. Show calculations wherever necessary.');
   const [selectedFile, setSelectedFile] = useState<{ name: string; size: string; file?: File } | null>(null);
+  const [schoolName, setSchoolName] = useState('Delhi Public School');
+  const [className, setClassName] = useState('8th');
+  const [timeAllowed, setTimeAllowed] = useState('3 hours');
 
   const [selectors, setSelectors] = useState<QuestionSelector[]>([
     { id: 'mcq-1', type: 'MCQs', numQuestions: 4, marksPerQuestion: 4 },
@@ -121,6 +124,9 @@ export const AssignmentForm: React.FC = () => {
       formData.append('numQuestions', String(totalQuestions));
       formData.append('marks', String(totalMarks));
       formData.append('instructions', instructions);
+      formData.append('schoolName', schoolName);
+      formData.append('className', className);
+      formData.append('timeAllowed', timeAllowed);
       if (selectedFile?.file) {
         formData.append('file', selectedFile.file);
       }
@@ -280,6 +286,46 @@ export const AssignmentForm: React.FC = () => {
             className="w-full bg-[#F3F4F6] border border-transparent hover:border-zinc-200 focus:border-zinc-400 text-xs font-semibold text-zinc-800 placeholder-zinc-400 rounded-2xl px-4 py-3.5 focus:outline-none transition-all"
           />
           {errors.title && <span className="text-[10px] text-red-500 font-bold">{errors.title}</span>}
+        </div>
+
+        {/* School Name */}
+        <div className="flex flex-col gap-1.5">
+          <label className="text-xs font-black text-zinc-800 uppercase tracking-wide">School Name</label>
+          <input
+            type="text"
+            required
+            placeholder="e.g. Delhi Public School"
+            value={schoolName}
+            onChange={(e) => setSchoolName(e.target.value)}
+            className="w-full bg-[#F3F4F6] border border-transparent hover:border-zinc-200 focus:border-zinc-400 text-xs font-semibold text-zinc-800 placeholder-zinc-400 rounded-2xl px-4 py-3.5 focus:outline-none transition-all"
+          />
+        </div>
+
+        {/* Class and Time Allowed row */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-black text-zinc-800 uppercase tracking-wide">Class</label>
+            <input
+              type="text"
+              required
+              placeholder="e.g. 8th"
+              value={className}
+              onChange={(e) => setClassName(e.target.value)}
+              className="w-full bg-[#F3F4F6] border border-transparent hover:border-zinc-200 focus:border-zinc-400 text-xs font-semibold text-zinc-800 placeholder-zinc-400 rounded-2xl px-4 py-3.5 focus:outline-none transition-all"
+            />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-black text-zinc-800 uppercase tracking-wide">Time Allowed</label>
+            <input
+              type="text"
+              required
+              placeholder="e.g. 3 hours"
+              value={timeAllowed}
+              onChange={(e) => setTimeAllowed(e.target.value)}
+              className="w-full bg-[#F3F4F6] border border-transparent hover:border-zinc-200 focus:border-zinc-400 text-xs font-semibold text-zinc-800 placeholder-zinc-400 rounded-2xl px-4 py-3.5 focus:outline-none transition-all"
+            />
+          </div>
         </div>
 
         <FileUpload selectedFile={selectedFile} onFileSelect={setSelectedFile} />
