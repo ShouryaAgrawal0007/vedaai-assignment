@@ -1,4 +1,5 @@
 import { Assignment } from '../store/useAssignmentStore';
+import { getDeviceId } from './deviceId';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 
@@ -6,8 +7,13 @@ const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 export const createAssignment = async (
   formData: FormData
 ): Promise<{ assignment: Assignment; jobId: string }> => {
+  formData.append('deviceId', getDeviceId());
+  
   const res = await fetch(`${BASE_URL}/api/assignments`, {
     method: 'POST',
+    headers: {
+      'x-device-id': getDeviceId(),
+    },
     body: formData, // multipart/form-data (handles file upload)
   });
 
@@ -22,7 +28,11 @@ export const createAssignment = async (
 
 // ─── Fetch All Assignments ─────────────────────────────────────────────────────
 export const fetchAssignments = async (): Promise<Assignment[]> => {
-  const res = await fetch(`${BASE_URL}/api/assignments`);
+  const res = await fetch(`${BASE_URL}/api/assignments`, {
+    headers: {
+      'x-device-id': getDeviceId(),
+    },
+  });
   if (!res.ok) throw new Error('Failed to fetch assignments');
   const data = await res.json();
   return data.assignments;
@@ -30,7 +40,11 @@ export const fetchAssignments = async (): Promise<Assignment[]> => {
 
 // ─── Fetch Single Assignment ───────────────────────────────────────────────────
 export const fetchAssignment = async (id: string): Promise<Assignment> => {
-  const res = await fetch(`${BASE_URL}/api/assignments/${id}`);
+  const res = await fetch(`${BASE_URL}/api/assignments/${id}`, {
+    headers: {
+      'x-device-id': getDeviceId(),
+    },
+  });
   if (!res.ok) throw new Error('Assignment not found');
   const data = await res.json();
   return data.assignment;
@@ -42,6 +56,9 @@ export const regenerateAssignment = async (
 ): Promise<{ jobId: string }> => {
   const res = await fetch(`${BASE_URL}/api/assignments/${id}/regenerate`, {
     method: 'POST',
+    headers: {
+      'x-device-id': getDeviceId(),
+    },
   });
   if (!res.ok) throw new Error('Failed to regenerate');
   return res.json();
@@ -51,6 +68,9 @@ export const regenerateAssignment = async (
 export const deleteAssignment = async (id: string): Promise<void> => {
   const res = await fetch(`${BASE_URL}/api/assignments/${id}`, {
     method: 'DELETE',
+    headers: {
+      'x-device-id': getDeviceId(),
+    },
   });
   if (!res.ok) throw new Error('Failed to delete assignment');
 };

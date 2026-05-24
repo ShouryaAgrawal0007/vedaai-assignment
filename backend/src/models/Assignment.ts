@@ -28,6 +28,7 @@ export interface IAssignment extends Document {
   schoolName?: string;
   className?: string;
   timeAllowed?: string;
+  deviceId?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -65,6 +66,7 @@ const AssignmentSchema = new Schema<IAssignment>(
     schoolName: { type: String, default: "Delhi Public School" },
     className: { type: String, default: "8th" },
     timeAllowed: { type: String, default: "3 hours" },
+    deviceId: { type: String, default: 'unknown' },
   },
   { timestamps: true }
 );

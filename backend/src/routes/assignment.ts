@@ -69,6 +69,7 @@ router.post('/', upload.single('file'), async (req: Request, res: Response) => {
     }
 
     const { title, due, questionTypes, numQuestions, marks, instructions, schoolName, className, timeAllowed } = parsed.data;
+    const deviceId = (req.body.deviceId || req.headers['x-device-id']) as string || 'unknown';
 
     // Build assignment doc
     const assignment = await AssignmentModel.create({
@@ -87,6 +88,7 @@ router.post('/', upload.single('file'), async (req: Request, res: Response) => {
         ? `${(req.file.size / 1024 / 1024).toFixed(1)} MB`
         : undefined,
       status: 'pending',
+      deviceId,
     });
 
     // Add job to BullMQ queue
@@ -100,6 +102,9 @@ router.post('/', upload.single('file'), async (req: Request, res: Response) => {
     await AssignmentModel.findByIdAndUpdate(assignment._id, {
       jobId: job.id,
     });
+
+    // Invalidate the cache for this device
+    await redis.del(`assignments:all:${deviceId}`);
 
     console.log(`📬 Assignment ${assignment._id} queued as job ${job.id}`);
 
@@ -131,16 +136,17 @@ router.post('/', upload.single('file'), async (req: Request, res: Response) => {
 
 // ─── GET /api/assignments ──────────────────────────────────────────────────────
 // Fetch all assignments (with Redis caching — 60s TTL)
-router.get('/', async (_req: Request, res: Response) => {
+router.get('/', async (req: Request, res: Response) => {
   try {
-    const cacheKey = 'assignments:all';
+    const deviceId = req.headers['x-device-id'] as string;
+    const cacheKey = `assignments:all:${deviceId || 'all'}`;
     const cached = await redis.get(cacheKey);
 
     if (cached) {
       return res.json({ success: true, assignments: JSON.parse(cached), cached: true });
     }
 
-    const assignments = await AssignmentModel.find()
+    const assignments = await AssignmentModel.find(deviceId ? { deviceId } : {})
       .sort({ createdAt: -1 })
       .lean();
 
@@ -160,6 +166,7 @@ router.get('/', async (_req: Request, res: Response) => {
       schoolName: a.schoolName,
       className: a.className,
       timeAllowed: a.timeAllowed,
+      deviceId: a.deviceId,
     }));
 
     await redis.setex(cacheKey, 60, JSON.stringify(shaped));
@@ -174,15 +181,24 @@ router.get('/', async (_req: Request, res: Response) => {
 // ─── GET /api/assignments/:id ──────────────────────────────────────────────────
 router.get('/:id', async (req: Request, res: Response) => {
   try {
+    const deviceId = req.headers['x-device-id'] as string;
     const cacheKey = `assignment:${req.params.id}`;
     const cached = await redis.get(cacheKey);
 
     if (cached) {
-      return res.json({ success: true, assignment: JSON.parse(cached), cached: true });
+      const parsed = JSON.parse(cached);
+      if (parsed.deviceId && parsed.deviceId !== 'unknown' && parsed.deviceId !== deviceId) {
+        return res.status(403).json({ error: 'Access denied' });
+      }
+      return res.json({ success: true, assignment: parsed, cached: true });
     }
 
     const a = await AssignmentModel.findById(req.params.id).lean();
     if (!a) return res.status(404).json({ error: 'Assignment not found' });
+
+    if (a.deviceId && a.deviceId !== 'unknown' && a.deviceId !== deviceId) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
 
     const shaped = {
       id: a._id.toString(),
@@ -200,6 +216,7 @@ router.get('/:id', async (req: Request, res: Response) => {
       schoolName: a.schoolName,
       className: a.className,
       timeAllowed: a.timeAllowed,
+      deviceId: a.deviceId,
     };
 
     // Only cache completed assignments
@@ -218,6 +235,16 @@ router.get('/:id', async (req: Request, res: Response) => {
 // Re-queues a new generation job for existing assignment
 router.post('/:id/regenerate', async (req: Request, res: Response) => {
   try {
+    const deviceId = req.headers['x-device-id'] as string;
+    
+    // Check security ownership before update
+    const existing = await AssignmentModel.findById(req.params.id);
+    if (!existing) return res.status(404).json({ error: 'Assignment not found' });
+    
+    if (existing.deviceId && existing.deviceId !== 'unknown' && existing.deviceId !== deviceId) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
     const assignment = await AssignmentModel.findByIdAndUpdate(
       req.params.id,
       { status: 'pending', questions: [], errorMessage: undefined },
@@ -228,7 +255,7 @@ router.post('/:id/regenerate', async (req: Request, res: Response) => {
 
     // Invalidate cache
     await redis.del(`assignment:${req.params.id}`);
-    await redis.del('assignments:all');
+    await redis.del(`assignments:all:${deviceId}`);
 
     const job = await generationQueue.add(
       'generate',
@@ -246,9 +273,19 @@ router.post('/:id/regenerate', async (req: Request, res: Response) => {
 // ─── DELETE /api/assignments/:id ──────────────────────────────────────────────
 router.delete('/:id', async (req: Request, res: Response) => {
   try {
+    const deviceId = req.headers['x-device-id'] as string;
+
+    // Check security ownership before delete
+    const existing = await AssignmentModel.findById(req.params.id);
+    if (!existing) return res.status(404).json({ error: 'Assignment not found' });
+
+    if (existing.deviceId && existing.deviceId !== 'unknown' && existing.deviceId !== deviceId) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
     await AssignmentModel.findByIdAndDelete(req.params.id);
     await redis.del(`assignment:${req.params.id}`);
-    await redis.del('assignments:all');
+    await redis.del(`assignments:all:${deviceId}`);
     return res.json({ success: true });
   } catch (err) {
     console.error('DELETE /assignments/:id error:', err);

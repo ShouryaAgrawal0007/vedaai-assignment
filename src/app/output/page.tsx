@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
   ArrowLeft, Printer, Plus, AlertCircle, Check, Download, Sparkles, RefreshCw
@@ -17,8 +17,20 @@ export default function QuestionPaperOutputPage() {
   const { 
     assignments, 
     activeAssignmentId, 
+    isLoading,
+    loadAssignments,
     setActiveTab
   } = useAssignmentStore();
+
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    loadAssignments();
+  }, [loadAssignments]);
 
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [includeAnswerKey, setIncludeAnswerKey] = useState(true);
@@ -105,6 +117,27 @@ export default function QuestionPaperOutputPage() {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3000);
   };
+
+  if (!mounted || isLoading) {
+    return (
+      <div className="min-h-screen bg-[#F3F4F6] flex items-center justify-center p-6 select-none animate-in fade-in duration-200">
+        <div className="w-full max-w-md bg-white border border-zinc-200 p-8 rounded-3xl shadow-sm text-center flex flex-col items-center gap-5">
+          <div className="relative">
+            <div className="w-14 h-14 rounded-full border-4 border-zinc-100 border-t-[#FF5722] animate-spin" />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <Sparkles className="w-5 h-5 text-[#FF5722] animate-pulse" />
+            </div>
+          </div>
+          <div>
+            <h3 className="text-sm font-extrabold text-zinc-900 tracking-tight">Loading Assessment</h3>
+            <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider mt-1">
+              Fetching from MongoDB...
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!activeAssignment) {
     return (

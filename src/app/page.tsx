@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Sparkles, Home, Users, FileText, Wrench, FolderOpen, Settings, Bell, 
   ChevronDown, Search, SlidersHorizontal, Plus, MoreVertical, Trash2, ArrowLeft, Menu, X
@@ -18,11 +18,17 @@ export default function AssignmentCreationPage() {
     assignments, 
     searchQuery, 
     activeTab,
+    isLoading,
     setSearchQuery,
     setActiveTab,
     setActiveAssignment,
-    deleteAssignment
+    deleteAssignment,
+    loadAssignments
   } = useAssignmentStore();
+
+  useEffect(() => {
+    loadAssignments();
+  }, [loadAssignments]);
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeCardMenu, setActiveCardMenu] = useState<string | null>(null);
@@ -357,7 +363,28 @@ export default function AssignmentCreationPage() {
             </div>
 
             {/* Empty state versus Assignment Cards Grid */}
-            {filteredAssignments.length === 0 ? (
+            {isLoading ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 select-none animate-in fade-in duration-150">
+                {[1, 2, 3].map((n) => (
+                  <Card key={n} className="bg-white border border-zinc-200 rounded-2xl flex flex-col justify-between min-h-[160px] p-6 animate-pulse">
+                    <div>
+                      {/* Placeholder Title */}
+                      <div className="h-5 bg-zinc-250 rounded-lg w-2/3 mb-4" />
+                      {/* Placeholder Badges */}
+                      <div className="flex gap-2.5">
+                        <div className="h-5 bg-zinc-200 rounded-full w-20" />
+                        <div className="h-5 bg-zinc-200 rounded-full w-16" />
+                      </div>
+                    </div>
+                    {/* Placeholder Footer */}
+                    <div className="flex justify-between border-t border-zinc-100 pt-4 mt-6">
+                      <div className="h-3 bg-zinc-150 rounded w-24" />
+                      <div className="h-3 bg-zinc-150 rounded w-16" />
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            ) : filteredAssignments.length === 0 ? (
               <Card className="flex flex-col items-center text-center py-16 px-6 bg-white border border-zinc-200 rounded-3xl shadow-sm">
                 <div className="relative w-36 h-36 bg-zinc-50 rounded-full flex items-center justify-center border border-zinc-100 mb-6">
                   {/* Figma-style search document illustration */}

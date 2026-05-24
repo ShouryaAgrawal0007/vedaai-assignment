@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import { fetchAssignments, deleteAssignment as apiDelete } from '../lib/api';
 
 export interface Question {
@@ -58,70 +59,80 @@ export const getFormattedDate = (dateObj: Date): string => {
   return `${day}-${month}-${year}`;
 };
 
-export const useAssignmentStore = create<AssignmentState>((set, get) => ({
-  assignments: [],
-  activeAssignmentId: null,
-  searchQuery: '',
-  filterType: 'all',
-  activeTab: 'assignments',
-  isLoading: false,
-  generationStatus: null,
-
-  // Load all assignments from backend on app mount
-  loadAssignments: async () => {
-    set({ isLoading: true });
-    try {
-      const assignments = await fetchAssignments();
-      set({ assignments, isLoading: false });
-    } catch (err) {
-      console.error('Failed to load assignments:', err);
-      set({ isLoading: false });
-    }
-  },
-
-  // Add a newly created assignment (optimistic — before generation completes)
-  addAssignment: (assignment: Assignment) => {
-    set((state) => ({
-      assignments: [assignment, ...state.assignments],
-      activeAssignmentId: assignment.id,
-    }));
-  },
-
-  // Called by WebSocket when generation completes — updates questions in store
-  updateAssignmentFromSocket: (updatedAssignment: Assignment) => {
-    set((state) => ({
-      assignments: state.assignments.map((a) =>
-        a.id === updatedAssignment.id ? { ...a, ...updatedAssignment } : a
-      ),
+export const useAssignmentStore = create<AssignmentState>()(
+  persist(
+    (set, get) => ({
+      assignments: [],
+      activeAssignmentId: null,
+      searchQuery: '',
+      filterType: 'all',
+      activeTab: 'assignments',
+      isLoading: true,
       generationStatus: null,
-    }));
-  },
 
-  deleteAssignment: async (id: string) => {
-    // Optimistic update
-    set((state) => {
-      const next = state.assignments.filter((a) => a.id !== id);
-      return {
-        assignments: next,
-        activeAssignmentId:
-          state.activeAssignmentId === id
-            ? next.length > 0 ? next[0].id : null
-            : state.activeAssignmentId,
-      };
-    });
-    // Backend delete
-    try {
-      await apiDelete(id);
-    } catch (err) {
-      console.error('Failed to delete assignment from backend:', err);
-      // Re-fetch to restore correct state
-      get().loadAssignments();
+      // Load all assignments from backend on app mount
+      loadAssignments: async () => {
+        set({ isLoading: true });
+        try {
+          const assignments = await fetchAssignments();
+          set({ assignments, isLoading: false });
+        } catch (err) {
+          console.error('Failed to load assignments:', err);
+          set({ isLoading: false });
+        }
+      },
+
+      // Add a newly created assignment (optimistic — before generation completes)
+      addAssignment: (assignment: Assignment) => {
+        set((state) => ({
+          assignments: [assignment, ...state.assignments],
+          activeAssignmentId: assignment.id,
+        }));
+      },
+
+      // Called by WebSocket when generation completes — updates questions in store
+      updateAssignmentFromSocket: (updatedAssignment: Assignment) => {
+        set((state) => ({
+          assignments: state.assignments.map((a) =>
+            a.id === updatedAssignment.id ? { ...a, ...updatedAssignment } : a
+          ),
+          generationStatus: null,
+        }));
+      },
+
+      deleteAssignment: async (id: string) => {
+        // Optimistic update
+        set((state) => {
+          const next = state.assignments.filter((a) => a.id !== id);
+          return {
+            assignments: next,
+            activeAssignmentId:
+              state.activeAssignmentId === id
+                ? next.length > 0 ? next[0].id : null
+                : state.activeAssignmentId,
+          };
+        });
+        // Backend delete
+        try {
+          await apiDelete(id);
+        } catch (err) {
+          console.error('Failed to delete assignment from backend:', err);
+          // Re-fetch to restore correct state
+          get().loadAssignments();
+        }
+      },
+
+      setActiveAssignment: (id) => set({ activeAssignmentId: id }),
+      setSearchQuery: (query) => set({ searchQuery: query }),
+      setFilterType: (filter) => set({ filterType: filter }),
+      setActiveTab: (tab) => set({ activeTab: tab }),
+      setGenerationStatus: (status) => set({ generationStatus: status }),
+    }),
+    {
+      name: 'veda-ai-store',
+      partialize: (state) => ({
+        activeAssignmentId: state.activeAssignmentId,
+      }),
     }
-  },
-
-  setActiveAssignment: (id) => set({ activeAssignmentId: id }),
-  setSearchQuery: (query) => set({ searchQuery: query }),
-  setFilterType: (filter) => set({ filterType: filter }),
-  setActiveTab: (tab) => set({ activeTab: tab }),
-  setGenerationStatus: (status) => set({ generationStatus: status }),
-}));
+  )
+);
