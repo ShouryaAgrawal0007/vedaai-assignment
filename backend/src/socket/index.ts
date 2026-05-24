@@ -6,9 +6,18 @@ let io: SocketIOServer;
 export const initSocket = (httpServer: HTTPServer): SocketIOServer => {
   io = new SocketIOServer(httpServer, {
     cors: {
-      origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+      origin: (origin, callback) => {
+        if (!origin) return callback(null, true);
+        const isAllowed =
+          origin.includes('vercel.app') ||
+          origin.includes('localhost');
+        callback(null, isAllowed);
+      },
       methods: ['GET', 'POST'],
+      credentials: true,
     },
+    transports: ['polling', 'websocket'],
+    allowEIO3: true,
   });
 
   io.on('connection', (socket) => {

@@ -142,8 +142,9 @@ export const AssignmentForm: React.FC = () => {
       setGenerationMessage('Job queued — AI is generating your paper...');
       setGenerationProgress(15);
 
-      const socket = io('http://localhost:4000', {
-        transports: ['websocket', 'polling'],
+      const socket = io(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000', {
+        transports: ['polling', 'websocket'],
+        withCredentials: true,
       });
 
       socket.on('connect', () => {
