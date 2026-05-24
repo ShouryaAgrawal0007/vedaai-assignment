@@ -27,6 +27,7 @@ export interface Assignment {
   questions?: Question[];
   status?: 'pending' | 'processing' | 'completed' | 'failed';
   schoolName?: string;
+  schoolLocation?: string;
   className?: string;
   timeAllowed?: string;
 }

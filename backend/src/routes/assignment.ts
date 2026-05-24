@@ -33,7 +33,8 @@ const CreateAssignmentSchema = z.object({
   numQuestions: z.coerce.number().int().min(1).max(100),
   marks: z.coerce.number().int().min(1).max(500),
   instructions: z.string().optional().default(''),
-  schoolName: z.string().optional().default("Delhi Public School"),
+  schoolName: z.string().optional().default('School Name'),
+  schoolLocation: z.string().optional().default(''),
   className: z.string().optional().default("8th"),
   timeAllowed: z.string().optional().default("3 hours"),
 });
@@ -68,7 +69,7 @@ router.post('/', upload.single('file'), async (req: Request, res: Response) => {
       });
     }
 
-    const { title, due, questionTypes, numQuestions, marks, instructions, schoolName, className, timeAllowed } = parsed.data;
+    const { title, due, questionTypes, numQuestions, marks, instructions, schoolName, schoolLocation, className, timeAllowed } = parsed.data;
     const deviceId = (req.body.deviceId || req.headers['x-device-id']) as string || 'unknown';
 
     // Build assignment doc
@@ -81,6 +82,7 @@ router.post('/', upload.single('file'), async (req: Request, res: Response) => {
       marks,
       instructions,
       schoolName,
+      schoolLocation,
       className,
       timeAllowed,
       fileName: req.file?.originalname,
@@ -123,6 +125,7 @@ router.post('/', upload.single('file'), async (req: Request, res: Response) => {
         fileSize: assignment.fileSize,
         status: assignment.status,
         schoolName: assignment.schoolName,
+        schoolLocation: assignment.schoolLocation,
         className: assignment.className,
         timeAllowed: assignment.timeAllowed,
       },
@@ -164,6 +167,7 @@ router.get('/', async (req: Request, res: Response) => {
       questions: a.questions,
       status: a.status,
       schoolName: a.schoolName,
+      schoolLocation: a.schoolLocation,
       className: a.className,
       timeAllowed: a.timeAllowed,
       deviceId: a.deviceId,
@@ -214,6 +218,7 @@ router.get('/:id', async (req: Request, res: Response) => {
       questions: a.questions,
       status: a.status,
       schoolName: a.schoolName,
+      schoolLocation: a.schoolLocation,
       className: a.className,
       timeAllowed: a.timeAllowed,
       deviceId: a.deviceId,

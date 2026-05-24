@@ -26,6 +26,7 @@ export interface IAssignment extends Document {
   status: 'pending' | 'processing' | 'completed' | 'failed';
   errorMessage?: string;
   schoolName?: string;
+  schoolLocation?: string;
   className?: string;
   timeAllowed?: string;
   deviceId?: string;
@@ -63,7 +64,8 @@ const AssignmentSchema = new Schema<IAssignment>(
       default: 'pending',
     },
     errorMessage: { type: String },
-    schoolName: { type: String, default: "Delhi Public School" },
+    schoolName: { type: String, default: 'School Name' },
+    schoolLocation: { type: String, default: '' },
     className: { type: String, default: "8th" },
     timeAllowed: { type: String, default: "3 hours" },
     deviceId: { type: String, default: 'unknown' },

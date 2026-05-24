@@ -11,6 +11,7 @@ import { QuestionSection } from '../../components/output/QuestionSection';
 import { Button } from '../../components/ui/Button';
 import { regenerateAssignment } from '../../lib/api';
 import { useJobSocket } from '../../hooks/useJobSocket';
+import { getUserProfile, UserProfile } from '../../lib/userProfile';
 
 export default function QuestionPaperOutputPage() {
   const router = useRouter();
@@ -396,7 +397,8 @@ export default function QuestionPaperOutputPage() {
         {/* Academic School Test Header */}
         <div className="flex flex-col items-center text-center pb-4 mb-6 border-b border-zinc-150">
           <h2 className="text-base font-black tracking-tight text-zinc-900 print:text-black">
-            {activeAssignment.schoolName || 'Delhi Public School'}
+            {activeAssignment.schoolName || 'School Name'}
+            {activeAssignment.schoolLocation ? `, ${activeAssignment.schoolLocation}` : ''}
           </h2>
           <h3 className="text-sm font-black text-zinc-800 mt-1 print:text-black">
             Subject: {activeAssignment.title}

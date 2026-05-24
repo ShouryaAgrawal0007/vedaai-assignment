@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Sparkles, Calendar, ArrowLeft, Plus, X, ArrowRight, Minus, ChevronDown
@@ -7,6 +7,7 @@ import { useAssignmentStore } from '../../store/useAssignmentStore';
 import { createAssignment } from '../../lib/api';
 import { FileUpload } from './FileUpload';
 import { io } from 'socket.io-client';
+import { getUserProfile } from '../../lib/userProfile';
 
 interface QuestionSelector {
   id: string;
@@ -24,8 +25,15 @@ export const AssignmentForm: React.FC = () => {
   const [instructions, setInstructions] = useState('Attempt all questions. Show calculations wherever necessary.');
   const [selectedFile, setSelectedFile] = useState<{ name: string; size: string; file?: File } | null>(null);
   const [schoolName, setSchoolName] = useState('Delhi Public School');
+  const [schoolLocation, setSchoolLocation] = useState('Bokaro Steel City');
   const [className, setClassName] = useState('8th');
   const [timeAllowed, setTimeAllowed] = useState('3 hours');
+
+  useEffect(() => {
+    const profile = getUserProfile();
+    if (profile.schoolName) setSchoolName(profile.schoolName);
+    if (profile.schoolLocation) setSchoolLocation(profile.schoolLocation);
+  }, []);
 
   const [selectors, setSelectors] = useState<QuestionSelector[]>([
     { id: 'mcq-1', type: 'MCQs', numQuestions: 4, marksPerQuestion: 4 },
@@ -125,6 +133,7 @@ export const AssignmentForm: React.FC = () => {
       formData.append('marks', String(totalMarks));
       formData.append('instructions', instructions);
       formData.append('schoolName', schoolName);
+      formData.append('schoolLocation', schoolLocation);
       formData.append('className', className);
       formData.append('timeAllowed', timeAllowed);
       if (selectedFile?.file) {

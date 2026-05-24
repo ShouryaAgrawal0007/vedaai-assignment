@@ -11,6 +11,8 @@ import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import { useRouter } from 'next/navigation';
+import { getUserProfile, UserProfile } from '../lib/userProfile';
+import { OnboardingModal } from '../components/OnboardingModal';
 
 export default function AssignmentCreationPage() {
   const router = useRouter();
@@ -26,8 +28,19 @@ export default function AssignmentCreationPage() {
     loadAssignments
   } = useAssignmentStore();
 
+  const [profile, setProfile] = useState<UserProfile>({ name: '', schoolName: '', schoolLocation: '' });
+  const [onboardingOpen, setOnboardingOpen] = useState(false);
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+
   useEffect(() => {
     loadAssignments();
+    
+    // Load onboarding profile
+    const p = getUserProfile();
+    setProfile(p);
+    if (!p.name || !p.schoolName || !p.schoolLocation) {
+      setOnboardingOpen(true);
+    }
   }, [loadAssignments]);
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -128,19 +141,32 @@ export default function AssignmentCreationPage() {
             <span>Settings</span>
           </button>
           
-          {/* Delhi Public School Client Card */}
-          <div className="flex items-center gap-3 p-3 bg-zinc-50 border border-zinc-200 rounded-2xl shadow-sm">
-            <div className="w-10 h-10 rounded-xl bg-orange-100 border border-orange-200 overflow-hidden flex items-center justify-center flex-shrink-0">
-              <span className="text-xl">🎓</span>
+          {/* School Client Card */}
+          <div className="flex items-center justify-between gap-3 p-3 bg-zinc-50 border border-zinc-200 rounded-2xl shadow-sm">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-10 h-10 rounded-xl bg-orange-100 border border-orange-200 overflow-hidden flex items-center justify-center flex-shrink-0">
+                <span className="text-xl">🎓</span>
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-bold text-zinc-950 truncate leading-tight">
+                  {profile.schoolName || 'Delhi Public School'}
+                </p>
+                <p className="text-[10px] text-zinc-500 font-semibold truncate mt-0.5">
+                  {profile.schoolLocation || 'Bokaro Steel City'}
+                </p>
+              </div>
             </div>
-            <div className="min-w-0">
-              <p className="text-xs font-bold text-zinc-950 truncate leading-tight">
-                Delhi Public School
-              </p>
-              <p className="text-[10px] text-zinc-500 font-semibold truncate mt-0.5">
-                Bokaro Steel City
-              </p>
-            </div>
+            <button 
+              type="button"
+              onClick={() => {
+                setIsEditingProfile(true);
+                setOnboardingOpen(true);
+              }}
+              className="p-1 hover:bg-zinc-200 text-zinc-400 hover:text-zinc-700 rounded transition-colors flex-shrink-0"
+              title="Edit Profile"
+            >
+              <Wrench className="w-3.5 h-3.5" />
+            </button>
           </div>
         </div>
       </aside>
@@ -168,8 +194,15 @@ export default function AssignmentCreationPage() {
             <Bell className="w-4 h-4" />
             <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-[#FF5722] rounded-full" />
           </button>
-          <div className="w-8 h-8 rounded-full bg-zinc-200 overflow-hidden border border-zinc-300">
-            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=80&fit=crop" alt="avatar" className="w-full h-full object-cover" />
+          <div 
+            onClick={() => {
+              setIsEditingProfile(true);
+              setOnboardingOpen(true);
+            }}
+            className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#FF5722] to-[#FF8A65] border border-orange-100 overflow-hidden flex items-center justify-center text-white font-extrabold text-xs shadow-sm cursor-pointer select-none"
+            title="Edit Profile"
+          >
+            {(profile.name || 'T')[0].toUpperCase()}
           </div>
         </div>
       </header>
@@ -246,12 +279,30 @@ export default function AssignmentCreationPage() {
                 <span>Settings</span>
               </button>
               
-              <div className="flex items-center gap-3 p-3 bg-zinc-50 border border-zinc-200 rounded-xl">
-                <div className="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center">🎓</div>
-                <div className="min-w-0">
-                  <p className="text-xs font-bold text-zinc-950 leading-tight">DPS Bokaro</p>
-                  <p className="text-[10px] text-zinc-500 font-semibold mt-0.5">Bokaro Steel City</p>
+              <div className="flex items-center justify-between gap-3 p-3 bg-zinc-50 border border-zinc-200 rounded-xl">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center flex-shrink-0">🎓</div>
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold text-zinc-950 leading-tight truncate">
+                      {profile.schoolName || 'Delhi Public School'}
+                    </p>
+                    <p className="text-[10px] text-zinc-500 font-semibold mt-0.5 truncate">
+                      {profile.schoolLocation || 'Bokaro Steel City'}
+                    </p>
+                  </div>
                 </div>
+                <button 
+                  type="button"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    setIsEditingProfile(true);
+                    setOnboardingOpen(true);
+                  }}
+                  className="p-1 hover:bg-zinc-200 text-zinc-400 hover:text-zinc-700 rounded transition-colors flex-shrink-0"
+                  title="Edit Profile"
+                >
+                  <Wrench className="w-3.5 h-3.5" />
+                </button>
               </div>
             </div>
           </div>
@@ -290,12 +341,19 @@ export default function AssignmentCreationPage() {
             
             <div className="h-6 w-px bg-zinc-200" />
 
-            <div className="flex items-center gap-2 cursor-pointer group">
-              <div className="w-9 h-9 rounded-full bg-zinc-200 overflow-hidden border border-zinc-300">
-                <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&fit=crop" alt="avatar" className="w-full h-full object-cover" />
+            <div 
+              onClick={() => {
+                setIsEditingProfile(true);
+                setOnboardingOpen(true);
+              }}
+              className="flex items-center gap-2 cursor-pointer group select-none"
+              title="Edit Profile"
+            >
+              <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-[#FF5722] to-[#FF8A65] border border-orange-200 overflow-hidden flex items-center justify-center text-white font-extrabold text-sm shadow-sm">
+                {(profile.name || 'T')[0].toUpperCase()}
               </div>
               <span className="text-sm font-bold text-zinc-800 group-hover:text-zinc-950 transition-colors">
-                John Doe
+                {profile.name || 'Teacher'}
               </span>
               <ChevronDown className="w-4 h-4 text-zinc-400 group-hover:text-zinc-600 transition-colors" />
             </div>
@@ -527,6 +585,15 @@ export default function AssignmentCreationPage() {
         })}
       </footer>
 
+      <OnboardingModal
+        isOpen={onboardingOpen}
+        onClose={() => {
+          setOnboardingOpen(false);
+          setIsEditingProfile(false);
+        }}
+        onSave={(p) => setProfile(p)}
+        isEditing={isEditingProfile}
+      />
     </div>
   );
 }
