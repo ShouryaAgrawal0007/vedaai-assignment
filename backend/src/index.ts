@@ -5,6 +5,7 @@ import cors from 'cors';
 import { connectDB } from './config/db';
 import { initSocket } from './socket/index';
 import assignmentRoutes from './routes/assignment';
+import './workers/generationWorker';
 
 const app = express();
 const httpServer = http.createServer(app);
